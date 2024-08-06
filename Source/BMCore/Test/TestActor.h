@@ -3,27 +3,24 @@
 #pragma once
 
 // #include "BMCore/Public/Events/SynchronousEvent.h"
-#include "BMCore/Public/Events/SynchronousEventSystem.h"
 #include "CoreMinimal.h"
+#include "Events/EventBase.h"
+#include "Events/SynchronousEventSystem.h"
 #include "GameFramework/Actor.h"
 
 #include "TestActor.generated.h"
- DECLARE_MULTICAST_DELEGATE_OneParam(FTestDelegeate, int32);
-//typedef TMyMulticastDelegate<void(int32)> FTestDelegeate;
+DECLARE_MULTICAST_DELEGATE_OneParam(FTestDelegeate, int32);
+// typedef TMyMulticastDelegate<void(int32)> FTestDelegeate;
 
-// class TestEvet : public SynchronousEvent
-//{
-// protected:
-//	// Inherited via SynchronousEvent
-//	void OnEventReleased() override
-//	{
-//	}
-// };
- struct TestEvent
- {
-	 int32 data;
- };
- UCLASS()
+struct TestEvent : FEventBase
+{
+	int32 data;
+	virtual void Release() override
+	{
+	}
+};
+
+UCLASS()
 class BMCORE_API ATestActor : public AActor
 {
 	GENERATED_BODY()
@@ -41,7 +38,7 @@ public:
 	virtual void Tick(float DeltaTime) override;
 
 private:
-	void OnTestEvet(const TestEvent& Value);
+	void OnTestEvet(TestEvent& Value);
 
 private:
 	class SynchronousEventSystem* EventSystem;
