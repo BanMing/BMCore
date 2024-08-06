@@ -5,7 +5,6 @@
 // #include "BMCore/Public/Events/SynchronousEvent.h"
 #include "CoreMinimal.h"
 #include "Events/EventBase.h"
-#include "Events/SynchronousEventSystem.h"
 #include "GameFramework/Actor.h"
 
 #include "TestActor.generated.h"
@@ -38,8 +37,9 @@ public:
 	virtual void Tick(float DeltaTime) override;
 
 private:
-	void OnTestEvet(TestEvent& Value);
+	void OnTestEvet(const TestEvent& Value);
 
 private:
 	class SynchronousEventSystem* EventSystem;
+	class AsynchronousEventSystem* AsyncEventSystem;
 };
