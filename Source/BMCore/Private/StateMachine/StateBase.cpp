@@ -3,32 +3,28 @@
 
 #include "StateMachine/StateDataBase.h"
 
-UStateBase::UStateBase(const FObjectInitializer& ObjectInitializer) : Super(ObjectInitializer)
+template <typename TStateData>
+UStateBase<TStateData>::~UStateBase()
 {
+	CommonData = nullptr;
 }
 
-UStateBase::~UStateBase()
-{
-}
-
-void UStateBase::Enter(StateDataBase* InCommonData)
+template <typename TStateData>
+void UStateBase<TStateData>::Enter(TStateData* InCommonData)
 {
 	CommonData = InCommonData;
 	OnEnter();
 }
 
-void UStateBase::Tick(float DeltaTime)
+template <typename TStateData>
+void UStateBase<TStateData>::Tick(float DeltaTime)
 {
 	OnTick(DeltaTime);
 }
 
-void UStateBase::Exit()
+template <typename TStateData>
+void UStateBase<TStateData>::Exit()
 {
 	OnExit();
 	CommonData = nullptr;
-}
-
-void UStateBase::TransitionTo(TSubclassOf<UStateBase> NextSubStateBaseClass)
-{
-	OnTransitionTo.Broadcast(NextSubStateBaseClass);
 }

@@ -19,6 +19,7 @@ struct BMCORE_API FEventBase
 {
 public:
 	virtual void Release() = 0;
+	virtual ~FEventBase() = default;
 
 public:
 	// This is an approximate number of classes deriving FEventBase (it's actually ~183)

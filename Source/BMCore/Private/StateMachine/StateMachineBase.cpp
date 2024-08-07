@@ -5,26 +5,23 @@
 #include "StateMachine/StateBase.h"
 #include "StateMachine/StateDataBase.h"
 
-class UDefaultIdleState : public UStateBase
-{
-};
+#include <iostream>
+#include <typeinfo>
 
-static UDefaultIdleState* kDefaultIdleState = NewObject<UDefaultIdleState>();
-
-bool UStateMachineBase::IsIdleState(UStateBase* State)
+template <typename TStateData>
+bool UStateMachineBase<TStateData>::IsIdleState(UStateBase<TStateData>* State)
 {
-	return kDefaultIdleState == State;
+	return typeid(*State) == typeid(UDefaultIdleState);
 }
 
-UStateMachineBase::UStateMachineBase()
+template <typename TStateData>
+UStateMachineBase<TStateData>::UStateMachineBase(TStateData* InFSMData) : FSMData(InFSMData)
 {
+	CurrentState = kDefaultIdleState;
 }
 
-UStateMachineBase::UStateMachineBase(const FObjectInitializer& ObjectInitializer, StateDataBase* InFSMData) : Super(ObjectInitializer), FSMData(InFSMData)
-{
-}
-
-UStateMachineBase::~UStateMachineBase()
+template <typename TStateData>
+UStateMachineBase<TStateData>::~UStateMachineBase()
 {
 	if (FSMData != nullptr)
 	{
@@ -34,17 +31,16 @@ UStateMachineBase::~UStateMachineBase()
 	}
 }
 
-void UStateMachineBase::StartFSM(TSubclassOf<UStateBase> SubStateBaseClass)
+template <typename TStateData>
+void UStateMachineBase<TStateData>::StartFSM(UStateBase<TStateData>* InitState)
 {
-	ensureMsgf(IsValid(SubStateBaseClass), TEXT("Invalid type %s for state supplied as initial state"), *SubStateBaseClass->GetDefaultObjectName().ToString());
 	OnStarting();
-	CurrentState = kDefaultIdleState;
-	TransitionStateTo(SubStateBaseClass);
-	ExecuteStateTransition();
+	ForceTransitionTo(InitState);
 	OnStarted();
 }
 
-void UStateMachineBase::StopFSM()
+template <typename TStateData>
+void UStateMachineBase<TStateData>::StopFSM()
 {
 	OnStopping();
 
@@ -54,17 +50,20 @@ void UStateMachineBase::StopFSM()
 	OnStopped();
 }
 
-void UStateMachineBase::Suspend()
+template <typename TStateData>
+void UStateMachineBase<TStateData>::Suspend()
 {
 	bIsSuspended = true;
 }
 
-void UStateMachineBase::Resume()
+template <typename TStateData>
+void UStateMachineBase<TStateData>::Resume()
 {
 	bIsSuspended = false;
 }
 
-void UStateMachineBase::Tick(float DeltaTime)
+template <typename TStateData>
+void UStateMachineBase<TStateData>::Tick(float DeltaTime)
 {
 	if (!bIsSuspended)
 	{
@@ -78,25 +77,22 @@ void UStateMachineBase::Tick(float DeltaTime)
 	}
 }
 
-void UStateMachineBase::ResetFSM()
+template <typename TStateData>
+void UStateMachineBase<TStateData>::ResetFSM()
 {
 	CurrentState = kDefaultIdleState;
 	FSMData->Reset();
 }
 
-void UStateMachineBase::ForceTransitionTo(TSubclassOf<UStateBase> SubStateBaseClass)
+template <typename TStateData>
+void UStateMachineBase<TStateData>::ForceTransitionTo(UStateBase<TStateData>* ToState)
 {
-	TransitionStateTo(SubStateBaseClass);
+	TransitionStateTo(ToState);
 	ExecuteStateTransition();
 }
 
-void UStateMachineBase::TransitionStateTo(TSubclassOf<UStateBase> SubStateBaseClass)
-{
-	// TODO: check use CDO rather than new object
-	TargetState = NewObject<UStateBase>(this, SubStateBaseClass);
-}
-
-void UStateMachineBase::ExecuteStateTransition()
+template <typename TStateData>
+void UStateMachineBase<TStateData>::ExecuteStateTransition()
 {
 	UStateBase* FromState = CurrentState;
 	UStateBase* ToState = TargetState;
@@ -104,17 +100,24 @@ void UStateMachineBase::ExecuteStateTransition()
 
 	OnPreStateTransition.Broadcast(FromState, ToState);
 
-	CurrentState->Exit();
+	FromState->Exit();
 	CurrentState = ToState;
-	CurrentState->OnTransitionTo.AddUObject(this, &ThisClass::TransitionStateTo);
+	CurrentState->OnTransitionTo.AddRaw(this, &UStateMachineBase<TStateData>::TransitionStateTo);
+
 	CurrentState->Enter(FSMData);
 	OnPostStateTransition.Broadcast(FromState, ToState);
 
 	// Destroy Old State
-	if (!FromState->IsA<UDefaultIdleState>())
+	if (!IsIdleState(FromState))
 	{
 		FromState->OnTransitionTo.Clear();
-		FromState->ConditionalBeginDestroy();
+		delete FromState;
 		FromState = nullptr;
 	}
+}
+
+template <typename TStateData>
+void UStateMachineBase<TStateData>::TransitionStateTo(UStateBase<TStateData>* ToState)
+{
+	TargetState = ToState;
 }

@@ -3,8 +3,8 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "IEventSystem.h"
 #include "EventReceiver.h"
+#include "IEventSystem.h"
 
 #include <iostream>
 #include <memory>
@@ -16,8 +16,9 @@ class BMCORE_API SynchronousEventSystem : public EventReceiver, public IEventSys
 {
 public:
 	// Boradcast the event immediately
+	// The Event point will be deleted automatic
 	template <typename TEvent = FEventBase>
-	void Boradcast(TEvent& Event)
+	void Boradcast(TEvent* EventPtr)
 	{
 		size_t Key = typeid(TEvent).hash_code();
 		if (Listeners.Contains(Key))
@@ -26,10 +27,12 @@ public:
 			{
 				if (Info.Handler != nullptr)
 				{
-					Info.Handler(&Event);
+					Info.Handler(EventPtr);
 				}
 			}
 		}
+		EventPtr->Release();
+		delete EventPtr;
 	}
 
 	// Inherited via IEventSystem

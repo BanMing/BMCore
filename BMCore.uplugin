@@ -18,6 +18,11 @@
 		{
 			"Name": "BMCore",
 			"Type": "Runtime",
+			"LoadingPhase": "PreDefault"
+		},
+		{
+			"Name": "BMCoreEditor",
+			"Type": "Editor",
 			"LoadingPhase": "Default"
 		}
 	]

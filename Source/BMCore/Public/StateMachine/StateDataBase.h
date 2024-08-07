@@ -7,10 +7,9 @@
 /**
  *
  */
-class BMCORE_API StateDataBase
+struct BMCORE_API FStateDataBase
 {
-public:
-	virtual ~StateDataBase() = default;
+	virtual ~FStateDataBase() = default;
 	virtual void Release() = 0;
 	virtual void Reset() = 0;
 };

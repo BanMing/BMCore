@@ -28,7 +28,7 @@ void ATestActor::BeginPlay()
 	/*FTestDelegeate::FDelegate::TFuncType*/
 	// FTestDelegeate test;
 	// EventSystem->AddUObject<FTestDelegeate>(12, this, &ThisClass::OnTestEvet);
-	TestEvent Agrs;
+	/*TestEvent Agrs;
 	Agrs.data = 3;
 	AsyncEventSystem->Boradcast(Agrs);
 
@@ -38,7 +38,7 @@ void ATestActor::BeginPlay()
 
 	TestEvent Agrs2;
 	Agrs2.data = 1;
-	AsyncEventSystem->Boradcast(Agrs2);
+	AsyncEventSystem->Boradcast(Agrs2);*/
 
 	TArray<int32> TEST1{1, 3, 4, 5};
 	TArray<int32> TEST2;

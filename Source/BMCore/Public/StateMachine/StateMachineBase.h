@@ -4,30 +4,31 @@
 
 #include "CoreMinimal.h"
 
-#include "StateMachineBase.generated.h"
-
-class UStateBase;
-class StateDataBase;
-
-DECLARE_MULTICAST_DELEGATE_TwoParams(StateTransitionDelegate, UStateBase*, UStateBase*);
+struct FStateDataBase;
 
 /**
  *
  */
-UCLASS(Abstract)
-class BMCORE_API UStateMachineBase : public UObject
+template <typename TStateData = FStateDataBase>
+class BMCORE_API UStateMachineBase
 {
-	GENERATED_BODY()
-public:
-	static bool IsIdleState(UStateBase* State);
+private:
+	class UDefaultIdleState : public UStateBase<TStateData>
+	{
+	};
+
+	static UDefaultIdleState* kDefaultIdleState = new UDefaultIdleState();
 
 public:
-	UStateMachineBase();
-	UStateMachineBase(const FObjectInitializer& ObjectInitializer, StateDataBase* InFSMData);
+	static bool IsIdleState(UStateBase<TStateData>* State);
+
+public:
+	UStateMachineBase() = default;
+	UStateMachineBase(TStateData* InFSMData);
 	~UStateMachineBase();
 
 public:
-	void StartFSM(TSubclassOf<UStateBase> SubStateBaseClass);
+	void StartFSM(UStateBase<TStateData>* InitState);
 	void StopFSM();
 	void Suspend();
 	void Resume();
@@ -35,7 +36,7 @@ public:
 	void ResetFSM();
 
 public:
-	UStateBase* GetCurrentState() const
+	TStateData* GetCurrentState() const
 	{
 		return CurrentState;
 	}
@@ -48,25 +49,27 @@ protected:
 
 	// Recommond use StateBase->TransitionTo()
 	// Don't use this unless you *really* know what you are doing!
-	void ForceTransitionTo(TSubclassOf<UStateBase> SubStateBaseClass);
+	void ForceTransitionTo(UStateBase<TStateData>* ToState);
 
 private:
-	UFUNCTION()
-	void TransitionStateTo(TSubclassOf<UStateBase> SubStateBaseClass);
 	void ExecuteStateTransition();
 
+	void TransitionStateTo(UStateBase<TStateData>* ToState);
+
 public:
+	DECLARE_MULTICAST_DELEGATE_TwoParams(StateTransitionDelegate, UStateBase<TStateData>*, UStateBase<TStateData>*);
+
 	StateTransitionDelegate OnPreStateTransition;
 	StateTransitionDelegate OnPostStateTransition;
 
 protected:
-	StateDataBase* FSMData;
+	TStateData* FSMData;
 
 private:
-	UPROPERTY()
-	TObjectPtr<UStateBase> TargetState;
+	TObjectPtr<UStateBase<TStateData>> TargetState;
 
-	UPROPERTY()
-	TObjectPtr<UStateBase> CurrentState;
+	TObjectPtr<UStateBase<TStateData>> CurrentState;
+
 	bool bIsSuspended = false;
 };
+

@@ -2,11 +2,10 @@
 
 using UnrealBuildTool;
 
-public class BMCore : ModuleRules
+public class BMCoreEditor : ModuleRules
 {
-    public BMCore(ReadOnlyTargetRules Target) : base(Target)
+    public BMCoreEditor(ReadOnlyTargetRules Target) : base(Target)
     {
-        PCHUsage = ModuleRules.PCHUsageMode.UseExplicitOrSharedPCHs;
 
         PublicIncludePaths.AddRange(
             new string[] {
@@ -25,29 +24,34 @@ public class BMCore : ModuleRules
         PublicDependencyModuleNames.AddRange(
             new string[]
             {
-                "Core",
-				// ... add other public dependencies that you statically link with here ...
-			}
+                "BMCore"
+            }
             );
 
 
         PrivateDependencyModuleNames.AddRange(
             new string[]
             {
+                "BlueprintGraph",
+                "Core",
                 "CoreUObject",
+                "DetailCustomizations",
                 "Engine",
+                "GraphEditor",
+                "InputCore",
+                "KismetCompiler",
+                "PropertyEditor",
+                "SharedSettingsWidgets",
                 "Slate",
                 "SlateCore",
-				// ... add private dependencies that you statically link with here ...	
-			}
+                "UnrealEd",
+                "AssetTools",
+                "DeveloperSettings",
+                "EditorSubsystem",
+                "ToolMenus",
+                "ContentBrowser",
+            }
             );
 
-
-        DynamicallyLoadedModuleNames.AddRange(
-            new string[]
-            {
-				// ... add any modules that your module loads dynamically here ...
-			}
-            );
     }
 }

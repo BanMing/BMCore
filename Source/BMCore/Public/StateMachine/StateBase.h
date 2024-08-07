@@ -4,23 +4,19 @@
 
 #include "CoreMinimal.h"
 
-#include "StateBase.generated.h"
-
-class StateDataBase;
-
+struct FStateDataBase;
 /**
  *
  */
-UCLASS(Abstract)
-class BMCORE_API UStateBase : public UObject
+template <typename TStateData = FStateDataBase>
+class BMCORE_API UStateBase
 {
-	GENERATED_BODY()
 public:
-	UStateBase(const FObjectInitializer& ObjectInitializer);
+	UStateBase() = default;
 	~UStateBase();
 
 public:
-	void Enter(StateDataBase* InCommonData);
+	void Enter(TStateData* InCommonData);
 	void Tick(float DeltaTime);
 	void Exit();
 
@@ -29,12 +25,10 @@ protected:
 	virtual void OnTick(float DeltaTime){};
 	virtual void OnExit(){};
 
-	void TransitionTo(TSubclassOf<UStateBase> NextSubStateBaseClass);
-
 public:
-	DECLARE_MULTICAST_DELEGATE_OneParam(FTransitionToHandler, TSubclassOf<UStateBase>);
+	DECLARE_MULTICAST_DELEGATE_OneParam(FTransitionToHandler, UStateBase<TStateData>*);
 	FTransitionToHandler OnTransitionTo;
 
 protected:
-	StateDataBase* CommonData;
+	TStateData* CommonData;
 };

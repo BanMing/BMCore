@@ -26,10 +26,30 @@ public:
 			{
 				// Type conversion is performed here, and if the current event is extremely performance - critical,
 				// it is recommended to use UE's FDelegate
-				TEvent* EvetPtr = static_cast<TEvent*>(Event);
-				(ListenerObj->*InFunc)(*EvetPtr);
-				EvetPtr->Release();
+				(ListenerObj->*InFunc)(*static_cast<TEvent*>(Event));
 			}
+		};
+		if (Listeners.Contains(Key))
+		{
+			Listeners[Key].Add({Wrapper, Handle});
+		}
+		else
+		{
+			Listeners.Add(Key, {{Wrapper, Handle}});
+		}
+		return Handle;
+	}
+
+	template <typename TEvent = FEventBase, typename FunctorType>
+	FEventHandle AddHandler(FunctorType&& InFunc)
+	{
+		size_t Key = typeid(TEvent).hash_code();
+		FEventHandle Handle = NextEventHandle++;
+		auto Wrapper = [InFunc](FEventBase* Event)
+		{
+			// Type conversion is performed here, and if the current event is extremely performance - critical,
+			// it is recommended to use UE's FDelegate
+			InFunc(*static_cast<TEvent*>(Event));
 		};
 		if (Listeners.Contains(Key))
 		{

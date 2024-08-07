@@ -37,7 +37,7 @@ class BMCORE_API AsynchronousEventSystem : public EventReceiver, public IEventSy
 private:
 	struct CacheEventInfo
 	{
-		FEventBase* EventBase;
+		FEventBase* EventPtr;
 		size_t EventKey;
 	};
 
@@ -48,17 +48,22 @@ public:
 	virtual void Initialize() override;
 	virtual void Destroy() override;
 
+	// The Event point will be deleted automatic 
 	template <typename TEvent = FEventBase>
-	void Boradcast(TEvent& Event)
+	void Boradcast(TEvent* EventPtr)
 	{
 		size_t Key = typeid(TEvent).hash_code();
 		if (Listeners.Contains(Key))
 		{
 			EventPoolLock.Lock();
-			CacheEvents.Enqueue({&Event, Key});
+			CacheEvents.Enqueue({EventPtr, Key});
 			EventPoolLock.Unlock();
 		}
 	}
+
+protected:
+	void ClearCacheEvents();
+	void ClearActiveEvents();
 
 private:
 	TQueue<CacheEventInfo> CacheEvents;
