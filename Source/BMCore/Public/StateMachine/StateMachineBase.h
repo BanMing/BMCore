@@ -3,32 +3,23 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "StateBase.h"
 
 struct FStateDataBase;
-
 /**
  *
  */
 template <typename TStateData = FStateDataBase>
-class BMCORE_API UStateMachineBase
+class BMCORE_API StateMachineBase
 {
-private:
-	class UDefaultIdleState : public UStateBase<TStateData>
-	{
-	};
-
-	static UDefaultIdleState* kDefaultIdleState = new UDefaultIdleState();
+public:
+	StateMachineBase(TStateData* InFSMData);
+	virtual ~StateMachineBase();
+	StateMachineBase(StateMachineBase<TStateData> const&) = delete;
+	StateMachineBase* operator=(const StateMachineBase<TStateData>&) = delete;
 
 public:
-	static bool IsIdleState(UStateBase<TStateData>* State);
-
-public:
-	UStateMachineBase() = default;
-	UStateMachineBase(TStateData* InFSMData);
-	~UStateMachineBase();
-
-public:
-	void StartFSM(UStateBase<TStateData>* InitState);
+	void StartFSM(StateBase<TStateData>* InitState);
 	void StopFSM();
 	void Suspend();
 	void Resume();
@@ -36,28 +27,27 @@ public:
 	void ResetFSM();
 
 public:
-	TStateData* GetCurrentState() const
-	{
-		return CurrentState;
-	}
+	TStateData* GetCurrentState();
 
 protected:
-	virtual void OnStarting(){};
-	virtual void OnStarted(){};
-	virtual void OnStopping(){};
-	virtual void OnStopped(){};
+	virtual void OnInitialize() = 0;
+	virtual void OnStarting() = 0;
+	virtual void OnStarted() = 0;
+	virtual void OnStopping() = 0;
+	virtual void OnStopped() = 0;
+	virtual void OnDestroy() = 0;
 
 	// Recommond use StateBase->TransitionTo()
 	// Don't use this unless you *really* know what you are doing!
-	void ForceTransitionTo(UStateBase<TStateData>* ToState);
+	void ForceTransitionTo(StateBase<TStateData>* ToState);
 
 private:
 	void ExecuteStateTransition();
 
-	void TransitionStateTo(UStateBase<TStateData>* ToState);
+	void TransitionStateTo(StateBase<TStateData>* ToState);
 
 public:
-	DECLARE_MULTICAST_DELEGATE_TwoParams(StateTransitionDelegate, UStateBase<TStateData>*, UStateBase<TStateData>*);
+	DECLARE_MULTICAST_DELEGATE_TwoParams(StateTransitionDelegate, StateBase<TStateData>*, StateBase<TStateData>*);
 
 	StateTransitionDelegate OnPreStateTransition;
 	StateTransitionDelegate OnPostStateTransition;
@@ -66,10 +56,9 @@ protected:
 	TStateData* FSMData;
 
 private:
-	TObjectPtr<UStateBase<TStateData>> TargetState;
+	StateBase<TStateData>* TargetState;
 
-	TObjectPtr<UStateBase<TStateData>> CurrentState;
+	StateBase<TStateData>* CurrentState;
 
 	bool bIsSuspended = false;
 };
-

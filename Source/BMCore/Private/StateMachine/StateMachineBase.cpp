@@ -9,19 +9,13 @@
 #include <typeinfo>
 
 template <typename TStateData>
-bool UStateMachineBase<TStateData>::IsIdleState(UStateBase<TStateData>* State)
+StateMachineBase<TStateData>::StateMachineBase(TStateData* InFSMData) : FSMData(InFSMData)
 {
-	return typeid(*State) == typeid(UDefaultIdleState);
+	OnInitialize();
 }
 
 template <typename TStateData>
-UStateMachineBase<TStateData>::UStateMachineBase(TStateData* InFSMData) : FSMData(InFSMData)
-{
-	CurrentState = kDefaultIdleState;
-}
-
-template <typename TStateData>
-UStateMachineBase<TStateData>::~UStateMachineBase()
+StateMachineBase<TStateData>::~StateMachineBase()
 {
 	if (FSMData != nullptr)
 	{
@@ -29,10 +23,11 @@ UStateMachineBase<TStateData>::~UStateMachineBase()
 		delete FSMData;
 		FSMData = nullptr;
 	}
+	OnDestroy();
 }
 
 template <typename TStateData>
-void UStateMachineBase<TStateData>::StartFSM(UStateBase<TStateData>* InitState)
+void StateMachineBase<TStateData>::StartFSM(StateBase<TStateData>* InitState)
 {
 	OnStarting();
 	ForceTransitionTo(InitState);
@@ -40,30 +35,29 @@ void UStateMachineBase<TStateData>::StartFSM(UStateBase<TStateData>* InitState)
 }
 
 template <typename TStateData>
-void UStateMachineBase<TStateData>::StopFSM()
+void StateMachineBase<TStateData>::StopFSM()
 {
 	OnStopping();
 
-	TransitionStateTo(UDefaultIdleState::StaticClass());
 	ExecuteStateTransition();
 
 	OnStopped();
 }
 
 template <typename TStateData>
-void UStateMachineBase<TStateData>::Suspend()
+void StateMachineBase<TStateData>::Suspend()
 {
 	bIsSuspended = true;
 }
 
 template <typename TStateData>
-void UStateMachineBase<TStateData>::Resume()
+void StateMachineBase<TStateData>::Resume()
 {
 	bIsSuspended = false;
 }
 
 template <typename TStateData>
-void UStateMachineBase<TStateData>::Tick(float DeltaTime)
+void StateMachineBase<TStateData>::Tick(float DeltaTime)
 {
 	if (!bIsSuspended)
 	{
@@ -78,37 +72,46 @@ void UStateMachineBase<TStateData>::Tick(float DeltaTime)
 }
 
 template <typename TStateData>
-void UStateMachineBase<TStateData>::ResetFSM()
+void StateMachineBase<TStateData>::ResetFSM()
 {
-	CurrentState = kDefaultIdleState;
 	FSMData->Reset();
 }
 
 template <typename TStateData>
-void UStateMachineBase<TStateData>::ForceTransitionTo(UStateBase<TStateData>* ToState)
+TStateData* StateMachineBase<TStateData>::GetCurrentState()
+{
+	return CurrentState;
+}
+
+template <typename TStateData>
+void StateMachineBase<TStateData>::ForceTransitionTo(StateBase<TStateData>* ToState)
 {
 	TransitionStateTo(ToState);
 	ExecuteStateTransition();
 }
 
 template <typename TStateData>
-void UStateMachineBase<TStateData>::ExecuteStateTransition()
+void StateMachineBase<TStateData>::ExecuteStateTransition()
 {
-	UStateBase* FromState = CurrentState;
-	UStateBase* ToState = TargetState;
+	StateBase* FromState = CurrentState;
+	StateBase* ToState = TargetState;
 	TargetState = nullptr;
 
 	OnPreStateTransition.Broadcast(FromState, ToState);
 
-	FromState->Exit();
+	if (FromState != nullptr)
+	{
+		FromState->Exit();
+	}
+
 	CurrentState = ToState;
-	CurrentState->OnTransitionTo.AddRaw(this, &UStateMachineBase<TStateData>::TransitionStateTo);
+	CurrentState->OnTransitionTo.AddRaw(this, &StateMachineBase<TStateData>::TransitionStateTo);
 
 	CurrentState->Enter(FSMData);
 	OnPostStateTransition.Broadcast(FromState, ToState);
 
 	// Destroy Old State
-	if (!IsIdleState(FromState))
+	if (FromState != nullptr)
 	{
 		FromState->OnTransitionTo.Clear();
 		delete FromState;
@@ -117,7 +120,7 @@ void UStateMachineBase<TStateData>::ExecuteStateTransition()
 }
 
 template <typename TStateData>
-void UStateMachineBase<TStateData>::TransitionStateTo(UStateBase<TStateData>* ToState)
+void StateMachineBase<TStateData>::TransitionStateTo(StateBase<TStateData>* ToState)
 {
 	TargetState = ToState;
 }
