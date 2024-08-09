@@ -4,34 +4,27 @@
 
 #include "StateMachine/StateDataBase.h"
 
-template <typename TStateData>
-StateBase<TStateData>::StateBase(bool InbIsReusing) : bIsReusing(InbIsReusing)
+StateBase::StateBase(bool InbIsReusing) : bIsReusing(InbIsReusing)
 {
-	OnInitialize();
 }
 
-template <typename TStateData>
-StateBase<TStateData>::~StateBase()
+StateBase::~StateBase()
 {
 	CommonData = nullptr;
-	OnDestroy();
 }
 
-template <typename TStateData>
-void StateBase<TStateData>::Enter(TStateData* InCommonData)
+void StateBase::Enter(FStateDataBase* InCommonData)
 {
 	CommonData = InCommonData;
 	OnEnter();
 }
 
-template <typename TStateData>
-void StateBase<TStateData>::Tick(float DeltaTime)
+void StateBase::Tick(float DeltaTime)
 {
 	OnTick(DeltaTime);
 }
 
-template <typename TStateData>
-void StateBase<TStateData>::Exit()
+void StateBase::Exit()
 {
 	OnExit();
 	CommonData = nullptr;

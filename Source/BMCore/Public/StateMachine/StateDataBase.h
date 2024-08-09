@@ -10,6 +10,6 @@
 struct BMCORE_API FStateDataBase
 {
 	virtual ~FStateDataBase() = default;
-	virtual void Release() = 0;
-	virtual void Reset() = 0;
+	virtual void Release(){};
+	virtual void Reset(){};
 };

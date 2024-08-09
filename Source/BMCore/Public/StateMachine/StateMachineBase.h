@@ -3,23 +3,21 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "StateBase.h"
 
 struct FStateDataBase;
+class StateBase;
 /**
  *
  */
-template <typename TStateData = FStateDataBase>
 class BMCORE_API StateMachineBase
 {
 public:
-	StateMachineBase(TStateData* InFSMData);
+	StateMachineBase() = default;
+	StateMachineBase(FStateDataBase* InFSMData);
 	virtual ~StateMachineBase();
-	StateMachineBase(StateMachineBase<TStateData> const&) = delete;
-	StateMachineBase* operator=(const StateMachineBase<TStateData>&) = delete;
 
 public:
-	void StartFSM(StateBase<TStateData>* InitState);
+	void StartFSM(StateBase* InitState);
 	void StopFSM();
 	void Suspend();
 	void Resume();
@@ -27,38 +25,36 @@ public:
 	void ResetFSM();
 
 public:
-	TStateData* GetCurrentState();
+	StateBase* GetCurrentState();
 
 protected:
-	virtual void OnInitialize() = 0;
 	virtual void OnStarting() = 0;
 	virtual void OnStarted() = 0;
 	virtual void OnStopping() = 0;
 	virtual void OnStopped() = 0;
-	virtual void OnDestroy() = 0;
 
 	// Recommond use StateBase->TransitionTo()
 	// Don't use this unless you *really* know what you are doing!
-	void ForceTransitionTo(StateBase<TStateData>* ToState);
+	void ForceTransitionTo(StateBase* ToState);
 
 private:
 	void ExecuteStateTransition();
 
-	void TransitionStateTo(StateBase<TStateData>* ToState);
+	void TransitionStateTo(StateBase* ToState);
 
 public:
-	DECLARE_MULTICAST_DELEGATE_TwoParams(StateTransitionDelegate, StateBase<TStateData>*, StateBase<TStateData>*);
+	DECLARE_MULTICAST_DELEGATE_TwoParams(StateTransitionDelegate, StateBase*, StateBase*);
 
 	StateTransitionDelegate OnPreStateTransition;
 	StateTransitionDelegate OnPostStateTransition;
 
 protected:
-	TStateData* FSMData;
+	FStateDataBase* FSMData;
 
 private:
-	StateBase<TStateData>* TargetState;
+	StateBase* TargetState;
 
-	StateBase<TStateData>* CurrentState;
+	StateBase* CurrentState;
 
 	bool bIsSuspended = false;
 };

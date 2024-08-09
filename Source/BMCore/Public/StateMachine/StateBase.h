@@ -9,7 +9,6 @@ struct FStateDataBase;
 /**
  *
  */
-template <typename TStateData = FStateDataBase>
 class BMCORE_API StateBase
 {
 public:
@@ -17,22 +16,20 @@ public:
 	virtual ~StateBase();
 
 public:
-	void Enter(TStateData* InCommonData);
+	void Enter(FStateDataBase* InCommonData);
 	void Tick(float DeltaTime);
 	void Exit();
 
 protected:
-	virtual void OnInitialize() = 0;
 	virtual void OnEnter() = 0;
 	virtual void OnTick(float DeltaTime) = 0;
 	virtual void OnExit() = 0;
-	virtual void OnDestroy() = 0;
 
 public:
-	DECLARE_MULTICAST_DELEGATE_OneParam(FTransitionToHandler, StateBase<TStateData>*);
+	DECLARE_MULTICAST_DELEGATE_OneParam(FTransitionToHandler, StateBase*);
 	FTransitionToHandler OnTransitionTo;
 
 protected:
-	TStateData* CommonData;
+	FStateDataBase* CommonData;
 	bool bIsReusing;
 };

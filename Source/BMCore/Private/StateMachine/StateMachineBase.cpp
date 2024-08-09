@@ -8,14 +8,11 @@
 #include <iostream>
 #include <typeinfo>
 
-template <typename TStateData>
-StateMachineBase<TStateData>::StateMachineBase(TStateData* InFSMData) : FSMData(InFSMData)
+StateMachineBase::StateMachineBase(FStateDataBase* InFSMData) : FSMData(InFSMData)
 {
-	OnInitialize();
 }
 
-template <typename TStateData>
-StateMachineBase<TStateData>::~StateMachineBase()
+StateMachineBase::~StateMachineBase()
 {
 	if (FSMData != nullptr)
 	{
@@ -23,19 +20,16 @@ StateMachineBase<TStateData>::~StateMachineBase()
 		delete FSMData;
 		FSMData = nullptr;
 	}
-	OnDestroy();
 }
 
-template <typename TStateData>
-void StateMachineBase<TStateData>::StartFSM(StateBase<TStateData>* InitState)
+void StateMachineBase::StartFSM(StateBase* InitState)
 {
 	OnStarting();
 	ForceTransitionTo(InitState);
 	OnStarted();
 }
 
-template <typename TStateData>
-void StateMachineBase<TStateData>::StopFSM()
+void StateMachineBase::StopFSM()
 {
 	OnStopping();
 
@@ -44,20 +38,17 @@ void StateMachineBase<TStateData>::StopFSM()
 	OnStopped();
 }
 
-template <typename TStateData>
-void StateMachineBase<TStateData>::Suspend()
+void StateMachineBase::Suspend()
 {
 	bIsSuspended = true;
 }
 
-template <typename TStateData>
-void StateMachineBase<TStateData>::Resume()
+void StateMachineBase::Resume()
 {
 	bIsSuspended = false;
 }
 
-template <typename TStateData>
-void StateMachineBase<TStateData>::Tick(float DeltaTime)
+void StateMachineBase::Tick(float DeltaTime)
 {
 	if (!bIsSuspended)
 	{
@@ -71,27 +62,23 @@ void StateMachineBase<TStateData>::Tick(float DeltaTime)
 	}
 }
 
-template <typename TStateData>
-void StateMachineBase<TStateData>::ResetFSM()
+void StateMachineBase::ResetFSM()
 {
 	FSMData->Reset();
 }
 
-template <typename TStateData>
-TStateData* StateMachineBase<TStateData>::GetCurrentState()
+StateBase* StateMachineBase::GetCurrentState()
 {
 	return CurrentState;
 }
 
-template <typename TStateData>
-void StateMachineBase<TStateData>::ForceTransitionTo(StateBase<TStateData>* ToState)
+void StateMachineBase::ForceTransitionTo(StateBase* ToState)
 {
 	TransitionStateTo(ToState);
 	ExecuteStateTransition();
 }
 
-template <typename TStateData>
-void StateMachineBase<TStateData>::ExecuteStateTransition()
+void StateMachineBase::ExecuteStateTransition()
 {
 	StateBase* FromState = CurrentState;
 	StateBase* ToState = TargetState;
@@ -105,7 +92,7 @@ void StateMachineBase<TStateData>::ExecuteStateTransition()
 	}
 
 	CurrentState = ToState;
-	CurrentState->OnTransitionTo.AddRaw(this, &StateMachineBase<TStateData>::TransitionStateTo);
+	CurrentState->OnTransitionTo.AddRaw(this, &StateMachineBase::TransitionStateTo);
 
 	CurrentState->Enter(FSMData);
 	OnPostStateTransition.Broadcast(FromState, ToState);
@@ -119,8 +106,7 @@ void StateMachineBase<TStateData>::ExecuteStateTransition()
 	}
 }
 
-template <typename TStateData>
-void StateMachineBase<TStateData>::TransitionStateTo(StateBase<TStateData>* ToState)
+void StateMachineBase::TransitionStateTo(StateBase* ToState)
 {
 	TargetState = ToState;
 }
