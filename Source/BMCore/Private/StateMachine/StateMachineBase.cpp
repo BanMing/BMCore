@@ -33,6 +33,7 @@ void StateMachineBase::StopFSM()
 {
 	OnStopping();
 
+	TargetState = nullptr;
 	ExecuteStateTransition();
 
 	OnStopped();
@@ -92,10 +93,13 @@ void StateMachineBase::ExecuteStateTransition()
 	}
 
 	CurrentState = ToState;
-	CurrentState->OnTransitionTo.AddRaw(this, &StateMachineBase::TransitionStateTo);
+	if (CurrentState != nullptr)
+	{
+		CurrentState->OnTransitionTo.AddRaw(this, &StateMachineBase::TransitionStateTo);
 
-	CurrentState->Enter(FSMData);
-	OnPostStateTransition.Broadcast(FromState, ToState);
+		CurrentState->Enter(FSMData);
+		OnPostStateTransition.Broadcast(FromState, ToState);
+	}
 
 	// Destroy Old State
 	if (FromState != nullptr)
